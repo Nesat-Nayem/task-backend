@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const Question = require("./models/question");
 const Answer = require("./models/answer");
+const PORT = process.env.PORT || 7070;
 
 const app = express();
 app.use(cors());
@@ -18,8 +19,6 @@ app.get("/api/data", async (req, res) => {
   try {
     // Fetch questions from the database
     const questions = await Question.find();
-
-    // Fetch answers from the database
     const answers = await Answer.find();
 
     const ageGenderData = await Answer.aggregate([
@@ -41,7 +40,6 @@ app.get("/api/data", async (req, res) => {
         },
       },
       {
-        // Filter out documents that don't have both age and gender answers
         $match: { "answers.1": { $exists: true } },
       },
       {
@@ -52,8 +50,7 @@ app.get("/api/data", async (req, res) => {
         },
       },
       {
-        // Ensure that age is in the correct field and gender is in the correct field
-        $project: {
+      $project: {
           age: {
             $cond: {
               if: { $eq: ["$age.questionIndex", 0] },
@@ -135,7 +132,12 @@ app.get("/api/data", async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('API Server is running ...');
+});
+
 // Start the server
-app.listen(7070, () => {
-  console.log("Server is running on port 7070");
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
